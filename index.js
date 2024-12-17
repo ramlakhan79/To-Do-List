@@ -1,5 +1,5 @@
 // Initialize variables
-var todoList = [];
+var todoList = JSON.parse(localStorage.getItem("todoList")) || [];
 var comdoList = [];
 var remList = [];
 var addButton = document.getElementById("add-button");
@@ -7,6 +7,17 @@ var todoInput = document.getElementById("todo-input");
 var deleteAllButton = document.getElementById("delete-all");
 var allTodos = document.getElementById("all-todos");
 var deleteSButton = document.getElementById("delete-selected");
+
+// Load todos from localStorage on page load
+window.onload = () => {
+  update();
+  addinmain(todoList);
+};
+
+// Save the current todoList to localStorage
+function saveToLocalStorage() {
+  localStorage.setItem("todoList", JSON.stringify(todoList));
+}
 
 // Event listeners for add and delete
 addButton.addEventListener("click", add);
@@ -57,6 +68,7 @@ function update() {
   remList = todoList.filter((ele) => !ele.complete);
   document.getElementById("r-count").innerText = todoList.length.toString();
   document.getElementById("c-count").innerText = comdoList.length.toString();
+  saveToLocalStorage();
 }
 
 // Adds a new task
