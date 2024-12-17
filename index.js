@@ -1,3 +1,4 @@
+// Initialize variables
 var todoList = [];
 var comdoList = [];
 var remList = [];
@@ -7,12 +8,12 @@ var deleteAllButton = document.getElementById("delete-all");
 var allTodos = document.getElementById("all-todos");
 var deleteSButton = document.getElementById("delete-selected");
 
-//event listners for add and delete
+// Event listeners for add and delete
 addButton.addEventListener("click", add);
 deleteAllButton.addEventListener("click", deleteAll);
 deleteSButton.addEventListener("click", deleteS);
 
-//event listeners for filtersk
+// Event listeners for filters and editing
 document.addEventListener("click", (e) => {
   if (
     e.target.className.split(" ")[0] == "complete" ||
@@ -26,6 +27,12 @@ document.addEventListener("click", (e) => {
   ) {
     deleteTodo(e);
   }
+  if (
+    e.target.className.split(" ")[0] == "edit" ||
+    e.target.className.split(" ")[0] == "ei"
+  ) {
+    editTodo(e);
+  }
   if (e.target.id == "all") {
     viewAll();
   }
@@ -36,29 +43,25 @@ document.addEventListener("click", (e) => {
     viewCompleted();
   }
 });
-//event listner for enter key
+
+// Event listener for Enter key
 todoInput.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     add();
   }
 });
 
-//updates the all the remaining, completed and main list
+// Updates the remaining, completed, and main lists
 function update() {
-  comdoList = todoList.filter((ele) => {
-    return ele.complete;
-  });
-  remList = todoList.filter((ele) => {
-    return !ele.complete;
-  });
+  comdoList = todoList.filter((ele) => ele.complete);
+  remList = todoList.filter((ele) => !ele.complete);
   document.getElementById("r-count").innerText = todoList.length.toString();
   document.getElementById("c-count").innerText = comdoList.length.toString();
 }
 
-//adds the task in main list
-
+// Adds a new task
 function add() {
-  var value = todoInput.value;
+  var value = todoInput.value.trim();
   if (value === "") {
     alert("😮 Task cannot be empty");
     return;
@@ -74,90 +77,150 @@ function add() {
   addinmain(todoList);
 }
 
-//renders the main list and views on the main content
-
+// Renders the tasks in the main list
 function addinmain(todoList) {
   allTodos.innerHTML = "";
   todoList.forEach((element) => {
     var x = `<li id=${element.id} class="todo-item">
-    <p id="task"> ${
-      element.complete ? `<strike>${element.task}</strike>` : element.task
-    } </p>
-    <div class="todo-actions">
-                <button class="complete btn btn-success">
-                    <i class=" ci bx bx-check bx-sm"></i>
-                </button>
-
-                <button class="delete btn btn-error" >
-                    <i class="di bx bx-trash bx-sm"></i>
-                </button>
-            </div>
+        <p id="task"> ${
+          element.complete ? `<strike>${element.task}</strike>` : element.task
+        } </p>
+        <div class="todo-actions">
+            <button class="complete btn btn-success">
+                <i class="ci bx bx-check bx-sm"></i>
+            </button>
+            <button class="edit btn btn-warning">
+                <i class="ei bx bx-edit bx-sm"></i>
+            </button>
+            <button class="delete btn btn-error">
+                <i class="di bx bx-trash bx-sm"></i>
+            </button>
+        </div>
         </li>`;
     allTodos.innerHTML += x;
   });
 }
 
-//deletes and indiviual task and update all the list
+// Deletes a task
 function deleteTodo(e) {
   var deleted = e.target.parentElement.parentElement.getAttribute("id");
-  todoList = todoList.filter((ele) => {
-    return ele.id != deleted;
-  });
-
+  todoList = todoList.filter((ele) => ele.id != deleted);
   update();
   addinmain(todoList);
 }
 
-//completes indiviaula task and updates all the list
+// Marks a task as completed
 function completeTodo(e) {
   var completed = e.target.parentElement.parentElement.getAttribute("id");
   todoList.forEach((obj) => {
     if (obj.id == completed) {
-      if (obj.complete == false) {
-        obj.complete = true;
-        e.target.parentElement.parentElement
-          .querySelector("#task")
-          .classList.add("line");
-      } else {
-        obj.complete = false;
-
-        e.target.parentElement.parentElement
-          .querySelector("#task")
-          .classList.remove("line");
-      }
+      obj.complete = !obj.complete;
     }
   });
-
   update();
   addinmain(todoList);
 }
 
-//deletes all the tasks
-function deleteAll(todo) {
+// Deletes all tasks
+function deleteAll() {
   todoList = [];
-
   update();
   addinmain(todoList);
 }
 
-//deletes only completed task
-function deleteS(todo) {
-  todoList = todoList.filter((ele) => {
-    return !ele.complete;
-  });
-
+// Deletes only completed tasks
+function deleteS() {
+  todoList = todoList.filter((ele) => !ele.complete);
   update();
   addinmain(todoList);
 }
 
-// functions for filters
+// Filters: View completed tasks
 function viewCompleted() {
   addinmain(comdoList);
 }
 
+// Filters: View remaining tasks
 function viewRemaining() {
   addinmain(remList);
 }
+
+// Filters: View all tasks
 function viewAll() {
   addinmain(todoList);
+}
+
+// Edits a task
+function editTodo(e) {
+  var editId = e.target.parentElement.parentElement.getAttribute("id");
+  var taskElement = e.target.parentElement.parentElement.querySelector("#task");
+
+  var currentTask = taskElement.innerText;
+  var inputField = document.createElement("input");
+  inputField.type = "text";
+  inputField.value = currentTask;
+  inputField.classList.add("edit-input");
+
+  taskElement.innerHTML = "";
+  taskElement.appendChild(inputField);
+
+  var actionDiv =
+    e.target.parentElement.parentElement.querySelector(".todo-actions");
+
+  // Hide Complete and Delete buttons
+  var completeButton = actionDiv.querySelector(".complete");
+  var deleteButton = actionDiv.querySelector(".delete");
+  var editButton = actionDiv.querySelector(".edit");
+  completeButton.style.display = "none";
+  deleteButton.style.display = "none";
+  editButton.style.display = "none";
+
+  // Add Save and Cancel buttons
+  var saveButton = document.createElement("button");
+  saveButton.classList.add("btn", "btn-success", "save-btn");
+  saveButton.innerText = "Save";
+
+  var cancelButton = document.createElement("button");
+  cancelButton.classList.add("btn", "btn-error", "cancel-btn");
+  cancelButton.innerText = "Cancel";
+
+  actionDiv.appendChild(saveButton);
+  actionDiv.appendChild(cancelButton);
+
+  // Save button functionality
+  saveButton.addEventListener("click", () => {
+    var newTask = inputField.value.trim();
+    if (newTask === "") {
+      alert("Task cannot be empty!");
+      return;
+    }
+    todoList.forEach((obj) => {
+      if (obj.id == editId) {
+        obj.task = newTask;
+      }
+    });
+    taskElement.innerHTML = newTask;
+
+    // Remove Save and Cancel buttons, restore other buttons
+    saveButton.remove();
+    cancelButton.remove();
+    completeButton.style.display = "inline-block";
+    deleteButton.style.display = "inline-block";
+    editButton.style.display = "inline-block";
+
+    update();
+    addinmain(todoList);
+  });
+
+  // Cancel button functionality
+  cancelButton.addEventListener("click", () => {
+    taskElement.innerHTML = currentTask;
+
+    // Remove Save and Cancel buttons, restore other buttons
+    saveButton.remove();
+    cancelButton.remove();
+    completeButton.style.display = "inline-block";
+    deleteButton.style.display = "inline-block";
+    editButton.style.display = "inline-block";
+  });
 }
